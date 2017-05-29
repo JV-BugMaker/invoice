@@ -6,9 +6,17 @@
 
 ## install
 
+```
+composer require gujiawei/invoice
+```
 
 ## usage
 
+```
+InvoiceSDK::create($arr);
+InvoiceSDK::download($arr);
+InvoiceSDK::email($arr);
+```
 
 ## license
 
