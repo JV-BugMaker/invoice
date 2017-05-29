@@ -29,10 +29,8 @@ class PackageInfo
      * @param $interface
      * @return string
      */
-    public function getXml(string $interface,array $arr)
+    public function getXml(string $interface,string $content)
     {
-
-        $content = $this->getContent(self::$config,$arr);
         $rand = rand(1000000000,9999999999);
         $pwd = $rand.base64_encode(md5($rand.self::$config['REGISTERCODE']));
         $terminalcode = self::$config['TERMINALCODE'];
@@ -90,8 +88,9 @@ XML;
      * @param array $arr
      * @return string
      */
-    private function getContent(array $config,array $arr)
+    public function getContent(array $arr)
     {
+        $config = self::$config;
         $fpkj = '';
         foreach ($this->content_0($config) as $key => $item){
             if($item['text']!==''){
