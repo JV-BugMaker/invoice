@@ -1,0 +1,19 @@
+{
+    "name": "jv/invoice",
+    "description": "上海航天信息电子发票对接平台",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "JV",
+            "email": "gjw15546192557@gmail.com"
+        }
+    ],
+    "minimum-stability": "beta",
+    "require": {
+        "php":"php>=7.0.0"
+    },
+    "autoload": {
+        "psr-4": { "jv\\invoice\\": "src/" }
+    }
+}
