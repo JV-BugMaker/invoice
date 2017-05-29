@@ -14,6 +14,6 @@
         "php":"php>=7.0.0"
     },
     "autoload": {
-        "psr-4": { "jv\\invoice\\": "src/" }
+        "psr-4": { "invoice\\": "src/" }
     }
 }
