@@ -13,9 +13,12 @@ class PackageInfo
 {
     private static $_instance = null;
 
+    private static $config = [];
+
     public static function getInstance()
     {
         if(self::$_instance == null){
+            self::$config = include "config.php";
             self::$_instance = new self();
         }
 
@@ -26,21 +29,21 @@ class PackageInfo
      * @param $interface
      * @return string
      */
-    public function getXml($interface)
+    public function getXml(string $interface,array $arr)
     {
-        $config = include "config.php";
-        $content = $this->getContent($config);
+
+        $content = $this->getContent(self::$config,$arr);
         $rand = rand(1000000000,9999999999);
-        $pwd = $rand.base64_encode(md5($rand.$config['REGISTERCODE']));
-        $terminalcode = $config['TERMINALCODE'];
-        $appid = $config['APPID'];
-        $dsptbm = $config['DSPTBM'];
+        $pwd = $rand.base64_encode(md5($rand.self::$config['REGISTERCODE']));
+        $terminalcode = self::$config['TERMINALCODE'];
+        $appid = self::$config['APPID'];
+        $dsptbm = self::$config['DSPTBM'];
         $password = $pwd;
         $date = date('Y-m-d');
-        $taxpayerid = $config['TAXPAYWERID'];
-        $authorizationcode = $config['AUTHORIZATIONCODE'];
-        $response = $config['RESPONSECODE'];
-        $dataexchangeid = $config['REQUESTCODE'].date('Ymd').substr($rand,0,9);
+        $taxpayerid = self::$config['TAXPAYWERID'];
+        $authorizationcode = self::$config['AUTHORIZATIONCODE'];
+        $response = self::$config['RESPONSECODE'];
+        $dataexchangeid = self::$config['REQUESTCODE'].date('Ymd').substr($rand,0,9);
         $str = <<<XML
 <?xml version="1.0" encoding="utf-8" ?>
 <interface xmlns="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -162,6 +165,93 @@ ROOT;
         $arr = simplexml_load_string($xml);
         $arr = json_decode(json_encode($arr),TRUE);
         return $arr;
+    }
+
+    public function getDownload($arr)
+    {
+        $content = '';
+
+        foreach ($this->download(self::$config) as $key => $item){
+            if($item['text']!==''){
+                $content .= '<'.strtoupper($item['key']).'>'.$item['text'].'</'.$item['key'].'>';
+            }else{
+                if($item['text']===null){
+                    $content .= '<'.strtoupper($item['key']).'/>';
+                    continue;
+                }
+                $content .= '<'.strtoupper($item['key']).'>'.$arr[$item['key']].'</'.$item['key'].'>';
+            }
+        }
+
+        $root = <<<ROOT
+<REQUEST_FPXXXZ_NEW class="REQUEST_FPXXXZ_NEW">
+    {$content}
+</REQUEST_FPXXXZ_NEW>
+ROOT;
+
+        return base64_encode($root);
+    }
+
+    /***
+     * @param array $arr
+     * @return string
+     */
+    public function getEmail(array $arr)
+    {
+        $nsrsbh = self::$config['NSRSBH'];
+
+        $root = <<<ROOT
+<REQUEST_EMAILPHONEFPTS class="REQUEST_EMAILPHONEFPTS">
+    <TSFSXX class="TSFSXX">
+        <COMMON_NODES class="COMMON_NODE;" size="4">
+            <COMMON_NODE> 
+                <NAME>TSFS</NAME> 
+                <VALUE>0</VALUE>
+            </COMMON_NODE>
+            <COMMON_NODE>
+                <NAME>SJ</NAME>
+                <VALUE></VALUE> 
+            </COMMON_NODE>
+            <COMMON_NODE>
+                <NAME>EMAIL</NAME>
+                <VALUE>{$arr['email']}</VALUE> 
+            </COMMON_NODE>
+            <COMMON_NODE>
+                <NAME>扩展字段名称</NAME>
+                <VALUE>扩展字段值</VALUE> 
+            </COMMON_NODE>
+        </COMMON_NODES> 
+    </TSFSXX>
+    <FPXXS class="FPXX;" size="1">
+        <FPXX>
+             <COMMON_NODES class="COMMON_NODE;" size="5"> 
+                <COMMON_NODE>
+                    <NAME>FPQQLSH</NAME>
+                    <VALUE>{$arr['FPQQLSH']}</VALUE> 
+                </COMMON_NODE>
+                <COMMON_NODE>
+                    <NAME>NSRSBH</NAME>
+                    <VALUE>{$nsrsbh}</VALUE> 
+                </COMMON_NODE> 
+                <COMMON_NODE>
+                    <NAME>FP_DM</NAME>
+                    <VALUE>{$arr['fp_dm']}</VALUE> 
+                </COMMON_NODE> 
+                <COMMON_NODE>
+                    <NAME>FP_HM</NAME>
+                    <VALUE>{$arr['fp_hm']}</VALUE> 
+                </COMMON_NODE> 
+                <COMMON_NODE>
+                    <NAME>扩展字段名称</NAME>
+                    <VALUE>扩展字段值</VALUE>
+                </COMMON_NODE>
+            </COMMON_NODES> 
+        </FPXX>
+    </FPXXS>
+</REQUEST_EMAILPHONEFPTS>
+ROOT;
+
+        return base64_encode($root);
     }
 
     /***
@@ -408,5 +498,14 @@ ROOT;
             'FP_DM'=>'',
             'FP_HM'=>''
         ];
+    }
+
+    private function udate($utimestamp = null) {
+        if (is_null($utimestamp))
+            $utimestamp = microtime(true);
+
+        $timestamp = floor($utimestamp);
+        $milliseconds = round(($utimestamp - $timestamp) * 100);
+        return $milliseconds;
     }
 }
